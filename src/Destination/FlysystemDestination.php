@@ -3,7 +3,7 @@
 namespace Zenstruck\Backup\Destination;
 
 use League\Flysystem\FileNotFoundException;
-use League\Flysystem\FilesystemInterface;
+use League\Flysystem\Filesystem;
 use Psr\Log\LoggerInterface;
 use Zenstruck\Backup\Backup;
 use Zenstruck\Backup\BackupCollection;
@@ -15,9 +15,9 @@ use Zenstruck\Backup\Destination;
 class FlysystemDestination implements Destination
 {
     private string $name;
-    private FilesystemInterface $filesystem;
+    private Filesystem $filesystem;
 
-    public function __construct(string $name, FilesystemInterface $filesystem)
+    public function __construct(string $name, Filesystem $filesystem)
     {
         $this->name = $name;
         $this->filesystem = $filesystem;
@@ -33,7 +33,7 @@ class FlysystemDestination implements Destination
 
         $logger->info(\sprintf('Uploading %s to: %s', $filename, $this->getName()));
 
-        $this->filesystem->putStream($key, $resource);
+        $this->filesystem->writeStream($key, $resource);
 
         return $this->get($key);
     }
@@ -45,8 +45,8 @@ class FlysystemDestination implements Destination
     {
         return new Backup(
             $key,
-            $this->filesystem->getSize($key),
-            \DateTime::createFromFormat('U', $this->filesystem->getTimestamp($key))
+            $this->filesystem->fileSize($key),
+            \DateTime::createFromFormat('U', $this->filesystem->lastModified($key))
         );
     }
 
